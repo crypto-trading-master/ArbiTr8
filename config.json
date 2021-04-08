@@ -1,12 +1,26 @@
 {
-    "useTestNet": false,
     "exchangeName": "binance",
-    "baseCoin": "BNB",
-    "startBalance": 1,
-    "minBaseCoinVolume": 1,
+    "useTestNet": false,
+    "baseCoins":
+        {
+            "BNB": {
+                "startBalance": 1,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 100
+            },
+            "BTC": {
+                "startBalance": 0.01,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 1
+            },
+            "USDT": {
+                "startBalance": 100,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 10000
+            }
+        },
     "minProfit": 0.001,
     "paperTrading": true,
     "noOfTrades": 5,
-    "maxBalance": 100000,
     "riskFactor": 1
 }
