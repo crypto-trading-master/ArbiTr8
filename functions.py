@@ -1,5 +1,6 @@
 def isSpotPair(value):
-    return value['type'] == 'spot'
+    return True
+    # return value['type'] == 'spot'
 
 
 def isActiveMarket(value):

@@ -17,10 +17,25 @@
                 "startBalance": 100,
                 "minBaseCoinVolume": 1,
                 "maxBalance": 10000
+            },
+            "ETH": {
+                "startBalance": 0.1,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 5
+            },
+            "BCH": {
+                "startBalance": 1,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 100
+            },
+            "ADA": {
+                "startBalance": 100,
+                "minBaseCoinVolume": 1,
+                "maxBalance": 10000
             }
         },
     "minProfit": 0.001,
     "paperTrading": true,
-    "noOfTrades": 5,
+    "noOfTrades": 1,
     "riskFactor": 1
 }
