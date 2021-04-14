@@ -23,7 +23,7 @@ def initialize():
 
         baseCoins = {}
         basePairs = {}
-        allPairs = []
+        allPairs = {}
         triplePairs = {}
         coinBalance = {}
         triples = {}
@@ -41,25 +41,6 @@ def initialize():
             apiKey = secretFile['apiKey']
             secret = secretFile['secret']
 
-        exchangeName = config['exchangeName']
-
-        print("Exchange:", exchangeName)
-
-        exchange_class = getattr(ccxt, exchangeName)
-        exchange = exchange_class({
-            'enableRateLimit': True,
-            'apiKey': apiKey,
-            'secret': secret
-        })
-
-        if config['useTestNet'] is True:
-            exchange.set_sandbox_mode(True)
-        markets = exchange.load_markets()
-
-        for pair, value in markets.items():
-            if isActiveMarket(value) and isSpotPair(value):
-                allPairs.append(pair)
-
         paperTrading = config['paperTrading']
         noOfTrades = config['noOfTrades']
         minProfit = config['minProfit']
@@ -68,93 +49,122 @@ def initialize():
 
         print("Number of base coins:", len(baseCoins))
 
-        print("\nGenerating triples...\n")
+        exchanges = config['exchanges']
 
-        tickers = exchange.fetch_tickers(allPairs)
-        for pair in allPairs:
-            if not tickerHasPrice(tickers[pair]):
-                allPairs.remove(pair)
-        print("Number of valid market pairs:", len(allPairs))
+        for exchangeName in exchanges:
 
-        for baseCoin, baseCoinConfig in baseCoins.items():
+            # TODO Progress Bar ############
 
-            coinBalance[baseCoin] = baseCoinConfig['startBalance']
+            print("Exchange:", exchangeName)
 
-            # Find Trading Pairs for base coin
+            exchange_class = getattr(ccxt, exchangeName)
+            exchange = exchange_class({
+                'enableRateLimit': True,
+                'apiKey': apiKey,
+                'secret': secret
+            })
 
-            basePairs[baseCoin] = []
-            coinsBetween = []
+            # TODO Secrets for every exchange -> Only needed when trading on exchange
 
+            if config['useTestNet'] is True:
+                exchange.set_sandbox_mode(True)
+            markets = exchange.load_markets()
+
+            for pair, value in markets.items():
+                if isActiveMarket(value) and isSpotPair(value):
+                    allPairs[exchangeName].append(pair)
+
+            ##################################
+            #### TODO Continue here TODO #####
+            ##################################
+
+            print("\nGenerating triples...\n")
+
+            tickers = exchange.fetch_tickers(allPairs)
             for pair in allPairs:
-                if isExchangeBaseCoinPair(baseCoin, pair):
+                if not tickerHasPrice(tickers[pair]):
+                    allPairs.remove(pair)
+            print("Number of valid market pairs:", len(allPairs))
 
-                    # ######### TODO: Check market volume
+            for baseCoin, baseCoinConfig in baseCoins.items():
 
-                    basePairs[baseCoin].append(pair)
+                coinBalance[baseCoin] = baseCoinConfig['startBalance']
 
-            # print("Number of base coin pairs", baseCoin, len(basePairs[baseCoin]))
+                # Find Trading Pairs for base coin
 
-            # Find between trading pairs
+                basePairs[baseCoin] = []
+                coinsBetween = []
 
-            for pair in basePairs[baseCoin]:
-                coins = getPairCoins(pair)
-                for coin in coins:
-                    if coin != baseCoin:
-                        if coin not in coinsBetween:
-                            coinsBetween.append(coin)
+                for pair in allPairs:
+                    if isExchangeBaseCoinPair(baseCoin, pair):
 
-            # Check if between pair exists
+                        # ######### TODO: Check market volume
 
-            pairsBetween = []
-            coinsBetween2 = coinsBetween
+                        basePairs[baseCoin].append(pair)
 
-            for baseCoinBetween in coinsBetween:
-                for qouteCoinBetween in coinsBetween2:
-                    pair = baseCoinBetween + "/" + qouteCoinBetween
-                    if pair in allPairs:
-                        pairsBetween.append(pair)
+                # print("Number of base coin pairs", baseCoin, len(basePairs[baseCoin]))
 
-            # Find triples for base coin
+                # Find between trading pairs
 
-            triples[baseCoin] = []
-            triplePairs[baseCoin] = []
-            basePairs2 = basePairs[baseCoin]
+                for pair in basePairs[baseCoin]:
+                    coins = getPairCoins(pair)
+                    for coin in coins:
+                        if coin != baseCoin:
+                            if coin not in coinsBetween:
+                                coinsBetween.append(coin)
 
-            for pair in basePairs[baseCoin]:
-                firstCoins = getPairCoins(pair)
-                for firstCoin in firstCoins:
-                    if firstCoin != baseCoin:
-                        firstTransferCoin = firstCoin
-                for pairBetween in pairsBetween:
-                    betweenPairFound = False
-                    secondCoins = getPairCoins(pairBetween)
-                    for secondCoin in secondCoins:
-                        if secondCoin == firstTransferCoin:
-                            betweenPairFound = True
-                            secondPairCoin = secondCoin
-                        else:
-                            secondTransferCoin = secondCoin
-                    if betweenPairFound:
-                        for lastPair in basePairs2:
-                            thirdCoins = getPairCoins(lastPair)
-                            for thirdCoin in thirdCoins:
-                                if thirdCoin != baseCoin:
-                                    thirdPairCoin = thirdCoin
+                # Check if between pair exists
 
-                            if firstTransferCoin == secondPairCoin and \
-                               secondTransferCoin == thirdPairCoin:
-                                triple = []
-                                triple.append(pair)
-                                addTriplePair(triplePairs[baseCoin], pair)
-                                triple.append(pairBetween)
-                                addTriplePair(triplePairs[baseCoin], pairBetween)
-                                triple.append(lastPair)
-                                addTriplePair(triplePairs[baseCoin], lastPair)
-                                # Add triple to array of triples
-                                triples[baseCoin].append(triple)
+                pairsBetween = []
+                coinsBetween2 = coinsBetween
 
-            # print("Number of Triples:", len(triples[baseCoin]))
-            # print("Number of Triple Pairs:", len(triplePairs[baseCoin]))
+                for baseCoinBetween in coinsBetween:
+                    for qouteCoinBetween in coinsBetween2:
+                        pair = baseCoinBetween + "/" + qouteCoinBetween
+                        if pair in allPairs:
+                            pairsBetween.append(pair)
+
+                # Find triples for base coin
+
+                triples[baseCoin] = []
+                triplePairs[baseCoin] = []
+                basePairs2 = basePairs[baseCoin]
+
+                for pair in basePairs[baseCoin]:
+                    firstCoins = getPairCoins(pair)
+                    for firstCoin in firstCoins:
+                        if firstCoin != baseCoin:
+                            firstTransferCoin = firstCoin
+                    for pairBetween in pairsBetween:
+                        betweenPairFound = False
+                        secondCoins = getPairCoins(pairBetween)
+                        for secondCoin in secondCoins:
+                            if secondCoin == firstTransferCoin:
+                                betweenPairFound = True
+                                secondPairCoin = secondCoin
+                            else:
+                                secondTransferCoin = secondCoin
+                        if betweenPairFound:
+                            for lastPair in basePairs2:
+                                thirdCoins = getPairCoins(lastPair)
+                                for thirdCoin in thirdCoins:
+                                    if thirdCoin != baseCoin:
+                                        thirdPairCoin = thirdCoin
+
+                                if firstTransferCoin == secondPairCoin and \
+                                   secondTransferCoin == thirdPairCoin:
+                                    triple = []
+                                    triple.append(pair)
+                                    addTriplePair(triplePairs[baseCoin], pair)
+                                    triple.append(pairBetween)
+                                    addTriplePair(triplePairs[baseCoin], pairBetween)
+                                    triple.append(lastPair)
+                                    addTriplePair(triplePairs[baseCoin], lastPair)
+                                    # Add triple to array of triples
+                                    triples[baseCoin].append(triple)
+
+                # print("Number of Triples:", len(triples[baseCoin]))
+                # print("Number of Triple Pairs:", len(triplePairs[baseCoin]))
 
     except ccxt.ExchangeError as e:
         print(str(e))

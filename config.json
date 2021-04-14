@@ -1,5 +1,5 @@
 {
-    "exchangeName": "binance",
+    "exchanges": ["binance","bitfinex","bitforex","bithump","bitmart","bitpanda","bitstamp","bittrex","coinbasepro","ftx","hitbtc","huobipro","kraken","kucoin","okcoin","okex","upbit"],
     "useTestNet": false,
     "baseCoins":
         {
@@ -34,7 +34,7 @@
                 "maxBalance": 10000
             }
         },
-    "minProfit": 0.001,
+    "minProfit": 0.005,
     "paperTrading": true,
     "noOfTrades": 1,
     "riskFactor": 1
