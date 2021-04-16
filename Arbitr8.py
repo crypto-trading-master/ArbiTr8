@@ -6,7 +6,7 @@ import json
 
 def run():
     initialize()
-    arbitrage()
+    # arbitrage()
     # test()
 
 
@@ -57,6 +57,12 @@ def initialize():
 
             print("Exchange:", exchangeName)
 
+            allPairs[exchangeName] = []
+            basePairs[exchangeName] = {}
+            triplePairs[exchangeName] = {}
+            triples[exchangeName] = {}
+
+
             exchange_class = getattr(ccxt, exchangeName)
             exchange = exchange_class({
                 'enableRateLimit': True,
@@ -74,39 +80,33 @@ def initialize():
                 if isActiveMarket(value) and isSpotPair(value):
                     allPairs[exchangeName].append(pair)
 
-            ##################################
-            #### TODO Continue here TODO #####
-            ##################################
-
             print("\nGenerating triples...\n")
 
-            tickers = exchange.fetch_tickers(allPairs)
-            for pair in allPairs:
+            tickers = exchange.fetch_tickers(allPairs[exchangeName])
+            for pair in allPairs[exchangeName]:
                 if not tickerHasPrice(tickers[pair]):
-                    allPairs.remove(pair)
-            print("Number of valid market pairs:", len(allPairs))
+                    allPairs[exchangeName].remove(pair)
+            print("Number of valid market pairs:", len(allPairs[exchangeName]))
 
             for baseCoin, baseCoinConfig in baseCoins.items():
 
-                coinBalance[baseCoin] = baseCoinConfig['startBalance']
-
                 # Find Trading Pairs for base coin
 
-                basePairs[baseCoin] = []
+                basePairs[exchangeName][baseCoin] = []
                 coinsBetween = []
 
-                for pair in allPairs:
+                for pair in allPairs[exchangeName]:
                     if isExchangeBaseCoinPair(baseCoin, pair):
 
                         # ######### TODO: Check market volume
 
-                        basePairs[baseCoin].append(pair)
+                        basePairs[exchangeName][baseCoin].append(pair)
 
                 # print("Number of base coin pairs", baseCoin, len(basePairs[baseCoin]))
 
                 # Find between trading pairs
 
-                for pair in basePairs[baseCoin]:
+                for pair in basePairs[exchangeName][baseCoin]:
                     coins = getPairCoins(pair)
                     for coin in coins:
                         if coin != baseCoin:
@@ -121,16 +121,16 @@ def initialize():
                 for baseCoinBetween in coinsBetween:
                     for qouteCoinBetween in coinsBetween2:
                         pair = baseCoinBetween + "/" + qouteCoinBetween
-                        if pair in allPairs:
+                        if pair in allPairs[exchangeName]:
                             pairsBetween.append(pair)
 
                 # Find triples for base coin
 
-                triples[baseCoin] = []
-                triplePairs[baseCoin] = []
-                basePairs2 = basePairs[baseCoin]
+                triples[exchangeName][baseCoin] = []
+                triplePairs[exchangeName][baseCoin] = []
+                basePairs2 = basePairs[exchangeName][baseCoin]
 
-                for pair in basePairs[baseCoin]:
+                for pair in basePairs[exchangeName][baseCoin]:
                     firstCoins = getPairCoins(pair)
                     for firstCoin in firstCoins:
                         if firstCoin != baseCoin:
@@ -155,20 +155,24 @@ def initialize():
                                    secondTransferCoin == thirdPairCoin:
                                     triple = []
                                     triple.append(pair)
-                                    addTriplePair(triplePairs[baseCoin], pair)
+                                    addTriplePair(triplePairs[exchangeName][baseCoin], pair)
                                     triple.append(pairBetween)
-                                    addTriplePair(triplePairs[baseCoin], pairBetween)
+                                    addTriplePair(triplePairs[exchangeName][baseCoin], pairBetween)
                                     triple.append(lastPair)
-                                    addTriplePair(triplePairs[baseCoin], lastPair)
+                                    addTriplePair(triplePairs[exchangeName][baseCoin], lastPair)
                                     # Add triple to array of triples
-                                    triples[baseCoin].append(triple)
+                                    triples[exchangeName][baseCoin].append(triple)
 
-                # print("Number of Triples:", len(triples[baseCoin]))
-                # print("Number of Triple Pairs:", len(triplePairs[baseCoin]))
+                # print("Number of Triples:", len(triples[exchangeName][baseCoin]))
+                # print("Number of Triple Pairs:", len(triplePairs[exchangeName][baseCoin]))
 
     except ccxt.ExchangeError as e:
         print(str(e))
 
+
+##################################
+#### TODO Continue here TODO #####
+##################################
 
 def arbitrage():
     for tradeCounter in range(noOfTrades):
@@ -183,7 +187,9 @@ def getBestArbitrageTriple():
     maxProfit = 0
     bestArbTriple = {}
 
-    for baseCoin in baseCoins:  # Loop Basecoins
+    for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
+
+        coinBalance[baseCoin] = baseCoinConfig['startBalance']
 
         exchange.load_markets(True)
         tickers = exchange.fetch_tickers(triplePairs[baseCoin])
