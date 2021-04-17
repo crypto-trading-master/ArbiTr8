@@ -55,13 +55,12 @@ def initialize():
 
             # TODO Progress Bar ############
 
-            print("Exchange:", exchangeName)
+            print("\n\nExchange:", exchangeName)
 
             allPairs[exchangeName] = []
             basePairs[exchangeName] = {}
             triplePairs[exchangeName] = {}
             triples[exchangeName] = {}
-
 
             exchange_class = getattr(ccxt, exchangeName)
             exchange = exchange_class({
@@ -74,15 +73,10 @@ def initialize():
 
             if config['useTestNet'] is True:
                 exchange.set_sandbox_mode(True)
-            markets = exchange.load_markets()
 
-            for pair, value in markets.items():
-                if isActiveMarket(value) and isSpotPair(value):
-                    allPairs[exchangeName].append(pair)
+            tickers = exchange.fetch_tickers()
+            allPairs[exchangeName] = list(set(list(tickers.keys())))
 
-            print("\nGenerating triples...\n")
-
-            tickers = exchange.fetch_tickers(allPairs[exchangeName])
             for pair in allPairs[exchangeName]:
                 if not tickerHasPrice(tickers[pair]):
                     allPairs[exchangeName].remove(pair)
