@@ -19,7 +19,7 @@ def initialize():
     try:
 
         global baseCoins, coinBalance, exchange, exchanges, triplePairs, triples, \
-               bestArbTriple, noOfTrades, minProfit, paperTrading, tickers
+               bestArbTriple, noOfTrades, minProfit, paperTrading
 
         baseCoins = {}
         basePairs = {}
@@ -28,7 +28,6 @@ def initialize():
         coinBalance = {}
         triples = {}
         exchange = {}
-        tickers = {}
 
         with open('config.json', 'r') as f:
             config = json.load(f)
@@ -63,7 +62,6 @@ def initialize():
             basePairs[exchangeName] = {}
             triplePairs[exchangeName] = {}
             triples[exchangeName] = {}
-            tickers[exchangeName] = {}
 
             exchange_class = getattr(ccxt, exchangeName)
             exchange[exchangeName] = exchange_class({
@@ -79,14 +77,11 @@ def initialize():
 
             exchange[exchangeName].load_markets(True)
 
-            tickers[exchangeName] = exchange[exchangeName].fetch_tickers()
+            tickers = exchange[exchangeName].fetch_tickers()
             allPairs[exchangeName] = list(set(list(tickers.keys())))
 
-            print("Number of Tickers", len(tickers[exchangeName]))
-
             for pair in allPairs[exchangeName]:
-                ticker = tickers[exchangeName]
-                print(ticker)
+                ticker = tickers
                 if not tickerHasPrice(ticker[pair]):
                     allPairs[exchangeName].remove(pair)
             print("Number of valid market pairs:", len(allPairs[exchangeName]))
@@ -194,18 +189,14 @@ def getBestArbitrageTriple():
 
         print("Calculate", exchangeName)
 
-        # exchange[exchangeName].load_markets(True)
-        # tickers = exchange[exchangeName].fetch_tickers()
+        exchange[exchangeName].load_markets(True)
+        tickers = exchange[exchangeName].fetch_tickers()
 
         for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
-
-            print(baseCoin)
 
             if len(triples[exchangeName][baseCoin]) > 0:
 
                 coinBalance[baseCoin] = baseCoinConfig['startBalance']
-
-                print("Number of Triples", len(triples[exchangeName][baseCoin]))
 
                 for triple in triples[exchangeName][baseCoin]:
                     i = 0
@@ -218,7 +209,10 @@ def getBestArbitrageTriple():
 
                     for pair in triple:
                         i += 1
-                        ticker = tickers[exchangeName][pair]
+                        ticker = tickers[pair]
+
+                        if not tickerHasPrice(ticker):
+                            continue
 
                         arbTriple[pair] = {}
                         arbTriple[pair]['pair'] = pair
