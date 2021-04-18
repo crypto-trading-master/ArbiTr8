@@ -1,3 +1,5 @@
+from pprint import pprint
+
 def isSpotPair(value):
     return True
     # return value['type'] == 'spot'
@@ -41,8 +43,10 @@ def tickerHasPrice(ticker):
 
 
 def getBuyPrice(ticker):
-    return ticker['ask']  # ask
+    mode = 'ask'
+    return ticker[mode]  # ask
 
 
 def getSellPrice(ticker):
-    return ticker['bid']  # bid
+    mode = 'bid'
+    return ticker[mode]  # bid

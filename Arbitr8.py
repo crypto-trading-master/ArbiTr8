@@ -6,7 +6,7 @@ import json
 
 def run():
     initialize()
-    # arbitrage()
+    arbitrage()
     # test()
 
 
@@ -18,8 +18,8 @@ def initialize():
 
     try:
 
-        global baseCoins, baseCoin, coinBalance, exchange, triplePairs, triples, \
-               bestArbTriple, noOfTrades, minProfit, paperTrading
+        global baseCoins, coinBalance, exchange, exchanges, triplePairs, triples, \
+               bestArbTriple, noOfTrades, minProfit, paperTrading, tickers
 
         baseCoins = {}
         basePairs = {}
@@ -27,6 +27,8 @@ def initialize():
         triplePairs = {}
         coinBalance = {}
         triples = {}
+        exchange = {}
+        tickers = {}
 
         with open('config.json', 'r') as f:
             config = json.load(f)
@@ -61,9 +63,10 @@ def initialize():
             basePairs[exchangeName] = {}
             triplePairs[exchangeName] = {}
             triples[exchangeName] = {}
+            tickers[exchangeName] = {}
 
             exchange_class = getattr(ccxt, exchangeName)
-            exchange = exchange_class({
+            exchange[exchangeName] = exchange_class({
                 'enableRateLimit': True,
                 'apiKey': apiKey,
                 'secret': secret
@@ -72,13 +75,19 @@ def initialize():
             # TODO Secrets for every exchange -> Only needed when trading on exchange
 
             if config['useTestNet'] is True:
-                exchange.set_sandbox_mode(True)
+                exchange[exchangeName].set_sandbox_mode(True)
 
-            tickers = exchange.fetch_tickers()
+            exchange[exchangeName].load_markets(True)
+
+            tickers[exchangeName] = exchange[exchangeName].fetch_tickers()
             allPairs[exchangeName] = list(set(list(tickers.keys())))
 
+            print("Number of Tickers", len(tickers[exchangeName]))
+
             for pair in allPairs[exchangeName]:
-                if not tickerHasPrice(tickers[pair]):
+                ticker = tickers[exchangeName]
+                print(ticker)
+                if not tickerHasPrice(ticker[pair]):
                     allPairs[exchangeName].remove(pair)
             print("Number of valid market pairs:", len(allPairs[exchangeName]))
 
@@ -181,62 +190,76 @@ def getBestArbitrageTriple():
     maxProfit = 0
     bestArbTriple = {}
 
-    for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
+    for exchangeName in exchanges:  # Loop exchanges
 
-        coinBalance[baseCoin] = baseCoinConfig['startBalance']
+        print("Calculate", exchangeName)
 
-        exchange.load_markets(True)
-        tickers = exchange.fetch_tickers(triplePairs[baseCoin])
+        # exchange[exchangeName].load_markets(True)
+        # tickers = exchange[exchangeName].fetch_tickers()
 
-        for triple in triples[baseCoin]:
-            i = 0
-            coinAmount = 0
-            transferCoin = ''
-            profit = 0
-            arbTriple = {}
+        for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
 
-            arbTriple['triple'] = triple
+            print(baseCoin)
 
-            for pair in triple:
-                i += 1
-                ticker = tickers[pair]
+            if len(triples[exchangeName][baseCoin]) > 0:
 
-                arbTriple[pair] = {}
-                arbTriple[pair]['pair'] = pair
+                coinBalance[baseCoin] = baseCoinConfig['startBalance']
 
-                if i == 1:
-                    transferCoin = baseCoin
-                    coinAmount = coinBalance[baseCoin]
+                print("Number of Triples", len(triples[exchangeName][baseCoin]))
 
-                if coinIsPairBaseCoin(transferCoin, pair):
-                    arbTriple[pair]['baseCoin'] = transferCoin
-                    # ######### TODO arbTriple[pair]['quoteCoin']
-                    # Sell
-                    tickerPrice = getSellPrice(ticker)
-                    coinAmount = tickerPrice * coinAmount
-                    arbTriple[pair]['tradeAction'] = 'sell'
-                else:
-                    # ######### TODO arbTriple[pair]['baseCoin']
-                    arbTriple[pair]['quoteCoin'] = transferCoin
-                    # Buy
-                    tickerPrice = getBuyPrice(ticker)
-                    coinAmount = coinAmount / tickerPrice
-                    arbTriple[pair]['tradeAction'] = 'buy'
+                for triple in triples[exchangeName][baseCoin]:
+                    i = 0
+                    coinAmount = 0
+                    transferCoin = ''
+                    profit = 0
+                    arbTriple = {}
 
-                arbTriple[pair]['calcPrice'] = tickerPrice
-                arbTriple[pair]['calcAmount'] = coinAmount
-                transferCoin = getTransferCoin(transferCoin, pair)
-                arbTriple[pair]['transferCoin'] = transferCoin
+                    arbTriple['triple'] = triple
 
-                if i == 3:
-                    profit = arbTriple[pair]['calcAmount'] / coinBalance[baseCoin]
-                    if profit > maxProfit:
-                        maxProfit = profit
-                        bestArbTriple['baseCoin'] = baseCoin
-                        bestArbTriple['triple'] = triple
+                    for pair in triple:
+                        i += 1
+                        ticker = tickers[exchangeName][pair]
+
+                        arbTriple[pair] = {}
+                        arbTriple[pair]['pair'] = pair
+
+                        if i == 1:
+                            transferCoin = baseCoin
+                            coinAmount = coinBalance[baseCoin]
+
+                        if coinIsPairBaseCoin(transferCoin, pair):
+                            arbTriple[pair]['baseCoin'] = transferCoin
+                            # ######### TODO arbTriple[pair]['quoteCoin']
+                            # Sell
+                            tickerPrice = getSellPrice(ticker)
+                            coinAmount = tickerPrice * coinAmount
+                            arbTriple[pair]['tradeAction'] = 'sell'
+                        else:
+                            # ######### TODO arbTriple[pair]['baseCoin']
+                            arbTriple[pair]['quoteCoin'] = transferCoin
+                            # Buy
+                            tickerPrice = getBuyPrice(ticker)
+                            coinAmount = coinAmount / tickerPrice
+                            arbTriple[pair]['tradeAction'] = 'buy'
+
+                        arbTriple[pair]['calcPrice'] = tickerPrice
+                        arbTriple[pair]['calcAmount'] = coinAmount
+                        transferCoin = getTransferCoin(transferCoin, pair)
+                        arbTriple[pair]['transferCoin'] = transferCoin
+
+                        if i == 3:
+                            profit = arbTriple[pair]['calcAmount'] / coinBalance[baseCoin]
+                            if profit > maxProfit:
+                                maxProfit = profit
+                                bestArbTriple['exchange'] = exchangeName
+                                bestArbTriple['baseCoin'] = baseCoin
+                                bestArbTriple['triple'] = triple
 
     maxProfit = maxProfit - 1
-    print(bestArbTriple['baseCoin'], "max. Profit % ", round((maxProfit) * 100, 2), bestArbTriple['triple'])
+    print(bestArbTriple['exchange'], \
+          bestArbTriple['baseCoin'], \
+          "max. Profit % ", \
+          round((maxProfit) * 100, 2), bestArbTriple['triple'])
 
     return
 
@@ -292,11 +315,14 @@ def tradeArbTriple(arbTriple):
 
 def test():
 
-    pair = 'LTC/BNB'
+    exchange_class = getattr(ccxt, 'bitfinex')
+    exchange = exchange_class({
+        'enableRateLimit': True
+    })
 
-    exchange.load_markets(True)
-    tickers = exchange.fetch_tickers(pair)
+    pair = 'TUSD/BNB'
 
+    tickers = exchange.fetch_tickers()
 
 
     pprint(tickers[pair])
@@ -304,7 +330,7 @@ def test():
 
 
 
-    pprint(exchange.fetchOrderBook(pair))
+    # pprint(exchange.fetchOrderBook(pair))
 
 
 
