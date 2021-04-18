@@ -248,6 +248,8 @@ def getBestArbitrageTriple():
                                 bestArbTriple['exchange'] = exchangeName
                                 bestArbTriple['baseCoin'] = baseCoin
                                 bestArbTriple['triple'] = triple
+                                bestArbTriple['profit'] = profit
+                                pprint(bestArbTriple)
 
     maxProfit = maxProfit - 1
     print(bestArbTriple['exchange'], \
