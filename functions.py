@@ -39,7 +39,7 @@ def getTransferCoin(lastCoin, pair):
 
 
 def tickerHasPrice(ticker):
-    return ticker['ask'] != 0 and ticker['bid'] != 0
+    return float(ticker['ask']) > 0 and float(ticker['bid']) > 0
 
 
 def getBuyPrice(ticker):

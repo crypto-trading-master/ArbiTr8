@@ -1,5 +1,5 @@
 {
-    "exchanges": ["binance","bitfinex"],
+    "exchanges": ["binance"],
     "useTestNet": false,
     "baseCoins":
         {
