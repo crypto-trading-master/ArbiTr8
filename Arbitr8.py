@@ -203,7 +203,6 @@ def getBestArbitrageTriple():
             ticker = tickers[pair]
             if not tickerHasPrice(ticker):
                 noOfInvalidPairs += 1
-        print("Number of valid market pairs:", len(allPairs[exchangeName]))
         print("Number of invalid market pairs:", noOfInvalidPairs)
 
         for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
