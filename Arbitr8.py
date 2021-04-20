@@ -7,7 +7,6 @@ import json
 def run():
     initialize()
     arbitrage()
-    # test()
 
 
 def initialize():
@@ -81,8 +80,6 @@ def initialize():
             for pair, value in markets.items():
                 if isActiveMarket(value) and isSpotPair(value):
                     allPairs[exchangeName].append(pair)
-
-            # TODO Check if Market has prices #################
 
             print("Number of active markets:", len(allPairs[exchangeName]))
 
@@ -205,7 +202,7 @@ def getBestArbitrageTriple():
                     arbTriple['triple'] = triple
 
                     for pair in triple:
-                        if tripleIsValid:
+                        if tripleIsValid and pairIsInTickers(pair, tickers):
                             i += 1
 
                             # TODO Ticker for pair does not exist
@@ -310,31 +307,6 @@ def tradeArbTriple(arbTriple):
 
     print("End balance:", tradeAmount)
     coinBalance = tradeAmount
-
-def test():
-
-    exchange_class = getattr(ccxt, 'binance')
-    exchange = exchange_class({
-        'enableRateLimit': True
-    })
-
-    pair = 'PAX/ETH'
-
-    tickers = exchange.fetch_tickers(pair)
-
-
-    pprint(tickers[pair])
-
-
-
-
-    # pprint(exchange.fetchOrderBook(pair))
-
-
-
-    # order = exchange.create_market_sell_order('BNB/BTC', 0.03)
-
-
 
 
 if __name__ == "__main__":

@@ -38,7 +38,13 @@ def getTransferCoin(lastCoin, pair):
             return coin
 
 
+def pairIsInTickers(pair, tickers):
+    return pair in list(tickers.keys())
+
+
 def tickerHasPrice(ticker):
+    if ticker['ask'] is None or ticker['bid'] is None:
+        return False
     return float(ticker['ask']) > 0 and float(ticker['bid']) > 0
 
 

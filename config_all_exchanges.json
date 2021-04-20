@@ -1,5 +1,5 @@
 {
-    "exchanges": ["binance","bitfinex","bithumb","bitpanda","bittrex","ftx","hitbtc","huobipro","kraken","kucoin","okcoin","okex","upbit"],
+    "exchanges": ["binance","bitfinex","bitpanda","bittrex","ftx","hitbtc","huobipro","kraken","kucoin","okcoin","okex","upbit"],
     "useTestNet": false,
     "baseCoins":
         {
