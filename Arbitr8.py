@@ -75,21 +75,16 @@ def initialize():
             if config['useTestNet'] is True:
                 exchange[exchangeName].set_sandbox_mode(True)
 
-            exchange[exchangeName].load_markets(True)
+            markets = exchange[exchangeName].load_markets(True)
+            print("Number of markets:", len(markets))
 
-            tickers = exchange[exchangeName].fetch_tickers()
-            print("Number of tickers:", exchangeName, len(tickers))
-            allPairs[exchangeName] = list(set(list(tickers.keys())))
+            for pair, value in markets.items():
+                if isActiveMarket(value) and isSpotPair(value):
+                    allPairs[exchangeName].append(pair)
 
-            noOfInvalidPairs = 0
+            # TODO Check if Market has prices #################
 
-            for pair in allPairs[exchangeName]:
-                ticker = tickers[pair]
-                if not tickerHasPrice(ticker):
-                    allPairs[exchangeName].remove(pair)
-                    noOfInvalidPairs += 1
-            print("Number of valid market pairs:", len(allPairs[exchangeName]))
-            print("Number of invalid market pairs:", noOfInvalidPairs)
+            print("Number of active markets:", len(allPairs[exchangeName]))
 
             for baseCoin, baseCoinConfig in baseCoins.items():
 
@@ -173,10 +168,6 @@ def initialize():
         print(str(e))
 
 
-##################################
-#### TODO Continue here TODO #####
-##################################
-
 def arbitrage():
     for tradeCounter in range(noOfTrades):
         getBestArbitrageTriple()
@@ -194,16 +185,8 @@ def getBestArbitrageTriple():
 
         print("Calculate", exchangeName)
 
-        noOfInvalidPairs = 0
-
         exchange[exchangeName].load_markets(True)
-        tickers = exchange[exchangeName].fetch_tickers()
-        print("Number of tickers:", exchangeName, len(tickers))
-        for pair in allPairs[exchangeName]:
-            ticker = tickers[pair]
-            if not tickerHasPrice(ticker):
-                noOfInvalidPairs += 1
-        print("Number of invalid market pairs:", noOfInvalidPairs)
+        tickers = exchange[exchangeName].fetch_tickers(allPairs[exchangeName])
 
         for baseCoin, baseCoinConfig in baseCoins.items():  # Loop Basecoins
 
@@ -224,12 +207,13 @@ def getBestArbitrageTriple():
                     for pair in triple:
                         if tripleIsValid:
                             i += 1
+
+                            # TODO Ticker for pair does not exist
+
                             ticker = tickers[pair]
 
                             if not tickerHasPrice(ticker):
                                 tripleIsValid = False
-
-                                # print("Invalid triple", triple)
                                 continue
 
                             arbTriple[pair] = {}
