@@ -3,6 +3,12 @@ from functions import *
 from pprint import pprint
 import json
 
+def progressBar:
+    pbar = tqdm(total=100)
+    for i in range(10):
+        sleep(0.1)
+        pbar.update(10)
+    pbar.close()
 
 def run():
 
