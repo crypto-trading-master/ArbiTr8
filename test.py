@@ -2,15 +2,22 @@ import ccxt
 from functions import *
 from pprint import pprint
 import json
+from tqdm import tqdm
+import time
+from progress.bar import Bar
 
-def progressBar:
-    pbar = tqdm(total=100)
-    for i in range(10):
-        sleep(0.1)
-        pbar.update(10)
-    pbar.close()
+def progressBar():
+    bar = Bar('Processing', max=20)
+    for i in range(20):
+        time.sleep(0.1)
+        bar.next()
+    bar.finish()
 
 def run():
+
+    progressBar()
+
+    return
 
     exchange_class = getattr(ccxt, 'bittrex')
     exchange = exchange_class({
