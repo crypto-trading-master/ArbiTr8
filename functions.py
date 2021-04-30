@@ -31,10 +31,10 @@ def coinIsPairBaseCoin(coinToCheck, pair):
     return coinToCheck == coins[0]
 
 
-def getTransferCoin(lastCoin, pair):
+def getOtherPairCoin(oneCoin, pair):
     coins = getPairCoins(pair)
     for coin in coins:
-        if coin != lastCoin:
+        if coin != oneCoin:
             return coin
 
 

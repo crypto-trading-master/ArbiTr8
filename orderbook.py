@@ -16,17 +16,7 @@ def run():
 
     triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
 
-    pair = 'BTC/USDT'
-
-
-
-
-    trades = exchange.fetch_trades(pair, limit=100)
-
-    print("Number of Trades:", len(trades))
-    pprint(trades)
-
-    return
+    pair = 'REQ/BTC'
 
     orderbook = exchange.fetch_order_book(pair)
 

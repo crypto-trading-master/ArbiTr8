@@ -53,8 +53,6 @@ def initialize():
 
         for exchangeName in exchanges:
 
-            # TODO Progress Bar ############
-
             print("Exchange:", exchangeName)
 
             allPairs[exchangeName] = []
@@ -75,13 +73,10 @@ def initialize():
                 exchange[exchangeName].set_sandbox_mode(True)
 
             markets = exchange[exchangeName].load_markets(True)
-            # print("Number of markets:", len(markets))
 
             for pair, value in markets.items():
                 if isActiveMarket(value) and isSpotPair(value):
                     allPairs[exchangeName].append(pair)
-
-            # print("Number of active markets:", len(allPairs[exchangeName]))
 
             for baseCoin, baseCoinConfig in baseCoins.items():
 
@@ -96,8 +91,6 @@ def initialize():
                         # ######### TODO: Check market volume
 
                         basePairs[exchangeName][baseCoin].append(pair)
-
-                # print("Number of base coin pairs", baseCoin, len(basePairs[baseCoin]))
 
                 # Find between trading pairs
 
@@ -157,9 +150,6 @@ def initialize():
                                     addTriplePair(triplePairs[exchangeName][baseCoin], lastPair)
                                     # Add triple to array of triples
                                     triples[exchangeName][baseCoin].append(triple)
-
-                # print("Number of Triples:", len(triples[exchangeName][baseCoin]))
-                # print("Number of Triple Pairs:", len(triplePairs[exchangeName][baseCoin]))
 
     except ccxt.ExchangeError as e:
         print(str(e))
@@ -221,38 +211,38 @@ def getBestArbitrageTriple():
 
                         if coinIsPairBaseCoin(transferCoin, pair):
                             arbTriple[pair]['baseCoin'] = transferCoin
-                            # ######### TODO arbTriple[pair]['quoteCoin']
+                            arbTriple[pair]['quoteCoin'] = getOtherPairCoin(transferCoin, pair)
                             # Sell
                             tickerPrice = getSellPrice(ticker)
                             coinAmount = tickerPrice * coinAmount
                             arbTriple[pair]['tradeAction'] = 'sell'
+                            arbTriple[pair]['tradePrice'] = 'bid'
                         else:
-                            # ######### TODO arbTriple[pair]['baseCoin']
+                            arbTriple[pair]['baseCoin'] = getOtherPairCoin(transferCoin, pair)
                             arbTriple[pair]['quoteCoin'] = transferCoin
                             # Buy
                             tickerPrice = getBuyPrice(ticker)
                             coinAmount = coinAmount / tickerPrice
                             arbTriple[pair]['tradeAction'] = 'buy'
+                            arbTriple[pair]['tradePrice'] = 'ask'
 
                         arbTriple[pair]['calcPrice'] = tickerPrice
                         arbTriple[pair]['calcAmount'] = coinAmount
-                        transferCoin = getTransferCoin(transferCoin, pair)
+                        transferCoin = getOtherPairCoin(transferCoin, pair)
                         arbTriple[pair]['transferCoin'] = transferCoin
 
                         if i == 3:
                             profit = arbTriple[pair]['calcAmount'] / coinBalance[baseCoin]
+
                             arbTriple['exchange'] = exchangeName
                             arbTriple['profit'] = profit
                             arbTriple['baseCoin'] = baseCoin
+                            arbTriple['profit'] = profit
                             calcTriples.append(arbTriple)
 
                             if profit > maxProfit:
                                 maxProfit = profit
-                                bestArbTriple['exchange'] = exchangeName
-                                bestArbTriple['baseCoin'] = baseCoin
-                                bestArbTriple['triple'] = triple
-                                bestArbTriple['profit'] = profit
-                                # pprint(bestArbTriple)
+                                bestArbTriple = arbTriple
 
     maxProfit = maxProfit - 1
     print(bestArbTriple['exchange'], \
@@ -269,6 +259,8 @@ def getBestArbitrageTriple():
               "max. Profit % ", \
               round((profit) * 100, 2), triple['triple'])
 
+    verifyTripleDepthProfit(sortedArbTriples)
+
     return
 
     '''
@@ -281,7 +273,21 @@ def getBestArbitrageTriple():
     '''
 
 
+def verifyTripleDepthProfit(arbTriples):
+
+    for arbTriple in arbTriples:
+        exchange[exchangeName].load_markets(True)
+
+        triple = arbTriple['triple']
+
+        for pair in triple:
+            orderbook = exchange[exchangeName].fetch_order_book(pair)
+
+            # TODO: Coin Amount needed to buy / sell
+
+
 def tradeArbTriple(arbTriple):
+
     global coinBalance
     tradeAmount = coinBalance
 
