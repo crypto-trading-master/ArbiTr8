@@ -190,6 +190,9 @@ def getBestArbitrageTriple():
                     arbTriple = {}
 
                     arbTriple['triple'] = triple
+                    arbTriple['exchange'] = exchangeName
+                    arbTriple['baseCoin'] = baseCoin
+                    arbTriple['coinAmountToTrade'] = coinBalance[baseCoin]
 
                     for pair in triple:
                         i += 1
@@ -234,9 +237,6 @@ def getBestArbitrageTriple():
                         if i == 3:
                             profit = arbTriple[pair]['calcAmount'] / coinBalance[baseCoin]
 
-                            arbTriple['exchange'] = exchangeName
-                            arbTriple['profit'] = profit
-                            arbTriple['baseCoin'] = baseCoin
                             arbTriple['profit'] = profit
                             calcTriples.append(arbTriple)
 
@@ -251,6 +251,8 @@ def getBestArbitrageTriple():
           round((maxProfit) * 100, 2), bestArbTriple['triple'])
 
     sortedArbTriples = sorted(calcTriples, key=lambda k: k['profit'], reverse=True)
+
+    '''
     print("Number of calculated triples:", len(calcTriples))
     for triple in sortedArbTriples[:10]:
         profit = triple['profit'] - 1
@@ -258,6 +260,7 @@ def getBestArbitrageTriple():
               triple['baseCoin'], \
               "max. Profit % ", \
               round((profit) * 100, 2), triple['triple'])
+    '''
 
     verifyTripleDepthProfit(sortedArbTriples)
 
@@ -275,15 +278,45 @@ def getBestArbitrageTriple():
 
 def verifyTripleDepthProfit(arbTriples):
 
-    for arbTriple in arbTriples:
+    for arbTriple in arbTriples[:1]:
+        i = 0
+
+        exchangeName = arbTriple['exchange']
         exchange[exchangeName].load_markets(True)
 
         triple = arbTriple['triple']
 
+        print("Base coin:", arbTriple['baseCoin'])
+
         for pair in triple:
+
+            i += 1
+
+            orderBookLevel = 0
+            totalAmount = 0
+
             orderbook = exchange[exchangeName].fetch_order_book(pair)
 
-            # TODO: Coin Amount needed to buy / sell
+            if i == 1:
+                coinAmountToTrade = arbTriple['coinAmountToTrade']
+
+                print("Trade Action", arbTriple[pair]['tradeAction'])
+
+                if arbTriple[pair]['tradeAction'] == 'sell':
+                    orderBookAction = 'bids'
+                else:
+                    orderBookAction = 'asks'
+
+                while totalAmount < coinAmountToTrade:
+                    price = orderbook[orderBookAction][orderBookLevel][0]
+                    coins = orderbook[orderBookAction][orderBookLevel][1]
+                    amount = price * coins
+                    totalAmount += amount
+                    orderBookLevel += 1
+                    print("Coins needed:", coinAmountToTrade)
+                    print("Level:", orderBookLevel)
+                    print("Orderbook coin amount:", amount)
+                    print("Sum coin amount:", totalAmount)
 
 
 def tradeArbTriple(arbTriple):

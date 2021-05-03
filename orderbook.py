@@ -7,18 +7,20 @@ import time
 
 def run():
 
-    exchange_class = getattr(ccxt, 'binance')
+    exchange_class = getattr(ccxt, 'bittrex')
     exchange = exchange_class({
         'enableRateLimit': True
     })
 
     exchange.load_markets(True)
 
-    triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
+    # triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
 
-    pair = 'REQ/BTC'
+    pair = 'BTC/USDT'
 
     orderbook = exchange.fetch_order_book(pair)
+
+    pprint(orderbook['asks'])
 
     # print("Orderbook depth:",len(orderbook['bids']))
 
@@ -33,7 +35,7 @@ def run():
         print("Bid Amount:", bidAmount)
         print("Bid Total:", bidTotal)
         print("Bid Volume:", bidCumTotal)
-    #pprint(orderbook)
+
 
 '''
 Price (Quote Coin)
