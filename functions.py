@@ -50,9 +50,9 @@ def tickerHasPrice(ticker):
 
 def getBuyPrice(ticker):
     mode = 'ask'
-    return ticker[mode]  # ask
+    return ticker[mode]  # ask -> Get left pair coins
 
 
 def getSellPrice(ticker):
     mode = 'bid'
-    return ticker[mode]  # bid
+    return ticker[mode]  # bid -> Get right pair coins

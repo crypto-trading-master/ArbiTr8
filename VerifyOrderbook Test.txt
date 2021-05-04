@@ -1,0 +1,18 @@
+Calculate bittrex
+bittrex BTC max. Profit %  0.57 ['ETH/BTC', 'UBT/ETH', 'UBT/BTC']
+Base coin: BTC
+Pair: ETH/BTC
+Trade Action: buy
+Coins to trade: 0.01
+Level: 1
+Orderbook coin amount: 0.0009291228
+Sum coin amount: 0.0009291228
+Level: 2
+Orderbook coin amount: 0.036743240414109604
+Sum coin amount: 0.037672363214109605
+Pair: UBT/ETH
+Trade Action: buy
+Coins to trade: 0.01
+Pair: UBT/BTC
+Trade Action: sell
+Coins to trade: 0.01

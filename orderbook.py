@@ -16,7 +16,7 @@ def run():
 
     # triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
 
-    pair = 'BTC/USDT'
+    pair = 'ARDR/BTC'
 
     orderbook = exchange.fetch_order_book(pair)
 

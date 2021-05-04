@@ -285,6 +285,7 @@ def verifyTripleDepthProfit(arbTriples):
         exchange[exchangeName].load_markets(True)
 
         triple = arbTriple['triple']
+        coinAmountToTrade = arbTriple['coinAmountToTrade']
 
         print("Base coin:", arbTriple['baseCoin'])
 
@@ -293,30 +294,43 @@ def verifyTripleDepthProfit(arbTriples):
             i += 1
 
             orderBookLevel = 0
+            totalQuantity = 0
             totalAmount = 0
+            orderBookDepth = 0
+
+            print("Pair:", pair)
+            print("Trade Action:", arbTriple[pair]['tradeAction'])
+            print("Quantity to trade:", coinAmountToTrade)
 
             orderbook = exchange[exchangeName].fetch_order_book(pair)
 
-            if i == 1:
-                coinAmountToTrade = arbTriple['coinAmountToTrade']
+            if arbTriple[pair]['tradeAction'] == 'sell':
+                orderBookAction = 'bids'
+            else:
+                orderBookAction = 'asks'
 
-                print("Trade Action", arbTriple[pair]['tradeAction'])
+            while orderBookDepth < coinAmountToTrade:
+                price = orderbook[orderBookAction][orderBookLevel][0]  # Pair base coin
+                quantity = orderbook[orderBookAction][orderBookLevel][1]  # Pair quote coin
+                amount = price * quantity
+                totalQuantity += quantity
+                totalAmount += amount
 
-                if arbTriple[pair]['tradeAction'] == 'sell':
-                    orderBookAction = 'bids'
+                if orderBookAction == 'bids':  # sell
+                    # Check against order book quantity
+                    orderBookDepth = totalQuantity
                 else:
-                    orderBookAction = 'asks'
+                    # Check against order book amount
+                    orderBookDepth = totalAmount
 
-                while totalAmount < coinAmountToTrade:
-                    price = orderbook[orderBookAction][orderBookLevel][0]
-                    coins = orderbook[orderBookAction][orderBookLevel][1]
-                    amount = price * coins
-                    totalAmount += amount
-                    orderBookLevel += 1
-                    print("Coins needed:", coinAmountToTrade)
-                    print("Level:", orderBookLevel)
-                    print("Orderbook coin amount:", amount)
-                    print("Sum coin amount:", totalAmount)
+                orderBookLevel += 1
+                print("Level:", orderBookLevel)
+                print("Quantity:", quantity)
+                print("Amount:", amount)
+                print("Total quantity", totalQuantity)
+                print("Total amount:", totalAmount)
+
+            # coinAmountToTrade = 
 
 
 def tradeArbTriple(arbTriple):

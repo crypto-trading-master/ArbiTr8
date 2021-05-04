@@ -2,9 +2,9 @@ import ccxt
 from functions import *
 from pprint import pprint
 import json
-from tqdm import tqdm
+# from tqdm import tqdm
 import time
-from progress.bar import Bar
+# from progress.bar import Bar
 
 def progressBar():
     bar = Bar('Processing', max=20)
@@ -15,19 +15,19 @@ def progressBar():
 
 def run():
 
-    progressBar()
+    # progressBar()
 
-    return
+
 
     exchange_class = getattr(ccxt, 'bittrex')
     exchange = exchange_class({
         'enableRateLimit': True
     })
 
-    pair = 'BCH/BTC'
+    pair = 'UBT/BTC'
     markets = exchange.load_markets(True)
 
-    tickers = exchange.fetch_tickers()
+    tickers = exchange.fetch_tickers(pair)
 
 
     # pprint(list(markets.keys()))
