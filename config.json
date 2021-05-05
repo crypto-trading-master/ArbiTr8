@@ -9,7 +9,7 @@
                 "maxBalance": 100
             },
             "BTC": {
-                "startBalance": 0.01,
+                "startBalance": 0.005,
                 "minBaseCoinVolume": 1,
                 "maxBalance": 1
             },

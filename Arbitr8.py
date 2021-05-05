@@ -248,7 +248,7 @@ def getBestArbitrageTriple():
     print(bestArbTriple['exchange'], \
           bestArbTriple['baseCoin'], \
           "max. Profit % ", \
-          round((maxProfit) * 100, 2), bestArbTriple['triple'])
+          round(maxProfit * 100, 2), bestArbTriple['triple'])
 
     sortedArbTriples = sorted(calcTriples, key=lambda k: k['profit'], reverse=True)
 
@@ -287,7 +287,8 @@ def verifyTripleDepthProfit(arbTriples):
         triple = arbTriple['triple']
         coinAmountToTrade = arbTriple['coinAmountToTrade']
 
-        print("Base coin:", arbTriple['baseCoin'])
+        print("Base coin:", arbTriple['baseCoin'], "\n")
+        print()
 
         for pair in triple:
 
@@ -297,10 +298,12 @@ def verifyTripleDepthProfit(arbTriples):
             totalQuantity = 0
             totalAmount = 0
             orderBookDepth = 0
+            coinAmountTraded = 0
 
             print("Pair:", pair)
             print("Trade Action:", arbTriple[pair]['tradeAction'])
             print("Quantity to trade:", coinAmountToTrade)
+            print()
 
             orderbook = exchange[exchangeName].fetch_order_book(pair)
 
@@ -309,7 +312,7 @@ def verifyTripleDepthProfit(arbTriples):
             else:
                 orderBookAction = 'asks'
 
-            while orderBookDepth < coinAmountToTrade:
+            while coinAmountToTrade > 0:
                 price = orderbook[orderBookAction][orderBookLevel][0]  # Pair base coin
                 quantity = orderbook[orderBookAction][orderBookLevel][1]  # Pair quote coin
                 amount = price * quantity
@@ -319,18 +322,39 @@ def verifyTripleDepthProfit(arbTriples):
                 if orderBookAction == 'bids':  # sell
                     # Check against order book quantity
                     orderBookDepth = totalQuantity
-                else:
+                    if coinAmountToTrade > orderBookDepth:
+                        coinAmountTraded += orderBookDepth * price
+                        coinAmountToTrade -= orderBookDepth
+                    else:
+                        coinAmountTraded += coinAmountToTrade * price
+                        coinAmountToTrade = 0
+                else:  # buy
                     # Check against order book amount
                     orderBookDepth = totalAmount
+                    if coinAmountToTrade > orderBookDepth:
+                        coinAmountTraded += orderBookDepth / price
+                        coinAmountToTrade -= orderBookDepth
+                    else:
+                        coinAmountTraded += coinAmountToTrade / price
+                        coinAmountToTrade = 0
 
                 orderBookLevel += 1
                 print("Level:", orderBookLevel)
                 print("Quantity:", quantity)
+                print("Price:", price)
                 print("Amount:", amount)
                 print("Total quantity", totalQuantity)
                 print("Total amount:", totalAmount)
+                print("Coin amount to trade:", coinAmountToTrade)
+                print("Coin amount traded:", coinAmountTraded)
+                print()
 
-            # coinAmountToTrade = 
+            coinAmountToTrade = coinAmountTraded
+
+            if i == 3:
+                profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
+                print("Profit % after order book validation:", round(profit * 100, 2))
+
 
 
 def tradeArbTriple(arbTriple):
