@@ -303,13 +303,6 @@ def verifyTripleDepthProfit(arbTriples):
             orderBookDepth = 0
             coinAmountTraded = 0
 
-            '''
-            print("Pair:", pair)
-            print("Trade Action:", arbTriple[pair]['tradeAction'])
-            print("Quantity to trade:", coinAmountToTrade)
-            print()
-            '''
-
             orderbook = exchange[exchangeName].fetch_order_book(pair)
 
             if arbTriple[pair]['tradeAction'] == 'sell':
@@ -345,27 +338,19 @@ def verifyTripleDepthProfit(arbTriples):
 
                 orderBookLevel += 1
 
-                '''
-                print("Level:", orderBookLevel)
-                print("Quantity:", quantity)
-                print("Price:", price)
-                print("Amount:", amount)
-                print("Total quantity", totalQuantity)
-                print("Total amount:", totalAmount)
-                print("Coin amount to trade:", coinAmountToTrade)
-                print("Coin amount traded:", coinAmountTraded)
-                print()
-                '''
-
             coinAmountToTrade = coinAmountTraded
 
             if i == 3:
                 profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
-                print("Exchange:", exchangeName)
-                print("Triple:", triple)
-                print("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
-                print("Order book profit:", round(profit * 100, 2), "%")
-                print()
+
+                if profit >= minProfit:
+                    print("Exchange:", exchangeName)
+                    print("Triple:", triple)
+                    print("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
+                    print("Order book profit:", round(profit * 100, 2), "%")
+                    print()
+                else:
+                    getBestArbitrageTriple()  # Calc again
 
 
 def tradeArbTriple(arbTriple):
