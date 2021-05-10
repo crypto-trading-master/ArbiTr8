@@ -47,7 +47,10 @@ def initialize():
 
         baseCoins = config['baseCoins']
 
-        print("Number of base coins:", len(baseCoins), "\n")
+        print("Number of base coins:", len(baseCoins))
+        print()
+        print("Generating Triples...")
+        print()
 
         exchanges = config['exchanges']
 
@@ -237,25 +240,28 @@ def getBestArbitrageTriple():
                         if i == 3:
                             profit = arbTriple[pair]['calcAmount'] / coinBalance[baseCoin]
 
-                            arbTriple['profit'] = profit
-                            calcTriples.append(arbTriple)
+                            arbTriple['tickerProfit'] = profit
+                            if profit - 1 >= minProfit:
+                                calcTriples.append(arbTriple)
 
                             if profit > maxProfit:
                                 maxProfit = profit
                                 bestArbTriple = arbTriple
 
     maxProfit = maxProfit - 1
+    print()
     print(bestArbTriple['exchange'], \
           bestArbTriple['baseCoin'], \
           "max. Profit % ", \
           round(maxProfit * 100, 2), bestArbTriple['triple'])
+    print()
 
-    sortedArbTriples = sorted(calcTriples, key=lambda k: k['profit'], reverse=True)
+    sortedArbTriples = sorted(calcTriples, key=lambda k: k['tickerProfit'], reverse=True)
 
     '''
     print("Number of calculated triples:", len(calcTriples))
     for triple in sortedArbTriples[:10]:
-        profit = triple['profit'] - 1
+        profit = triple['tickerProfit'] - 1
         print(triple['exchange'], \
               triple['baseCoin'], \
               "max. Profit % ", \
@@ -278,7 +284,7 @@ def getBestArbitrageTriple():
 
 def verifyTripleDepthProfit(arbTriples):
 
-    for arbTriple in arbTriples[:1]:
+    for arbTriple in arbTriples:
         i = 0
 
         exchangeName = arbTriple['exchange']
@@ -286,9 +292,6 @@ def verifyTripleDepthProfit(arbTriples):
 
         triple = arbTriple['triple']
         coinAmountToTrade = arbTriple['coinAmountToTrade']
-
-        print("Base coin:", arbTriple['baseCoin'], "\n")
-        print()
 
         for pair in triple:
 
@@ -300,10 +303,12 @@ def verifyTripleDepthProfit(arbTriples):
             orderBookDepth = 0
             coinAmountTraded = 0
 
+            '''
             print("Pair:", pair)
             print("Trade Action:", arbTriple[pair]['tradeAction'])
             print("Quantity to trade:", coinAmountToTrade)
             print()
+            '''
 
             orderbook = exchange[exchangeName].fetch_order_book(pair)
 
@@ -339,6 +344,8 @@ def verifyTripleDepthProfit(arbTriples):
                         coinAmountToTrade = 0
 
                 orderBookLevel += 1
+
+                '''
                 print("Level:", orderBookLevel)
                 print("Quantity:", quantity)
                 print("Price:", price)
@@ -348,13 +355,17 @@ def verifyTripleDepthProfit(arbTriples):
                 print("Coin amount to trade:", coinAmountToTrade)
                 print("Coin amount traded:", coinAmountTraded)
                 print()
+                '''
 
             coinAmountToTrade = coinAmountTraded
 
             if i == 3:
                 profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
-                print("Profit % after order book validation:", round(profit * 100, 2))
-
+                print("Exchange:", exchangeName)
+                print("Triple:", triple)
+                print("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
+                print("Order book profit:", round(profit * 100, 2), "%")
+                print()
 
 
 def tradeArbTriple(arbTriple):

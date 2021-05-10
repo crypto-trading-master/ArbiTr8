@@ -1,5 +1,5 @@
 {
-    "exchanges": ["bittrex"],
+    "exchanges": ["binance","bitfinex","bitpanda","bittrex","ftx","hitbtc","huobipro","kraken","kucoin","okcoin","okex","upbit"],
     "useTestNet": false,
     "baseCoins":
         {
@@ -19,12 +19,12 @@
                 "maxBalance": 10000
             },
             "ETH": {
-                "startBalance": 0.1,
+                "startBalance": 0.05,
                 "minBaseCoinVolume": 1,
                 "maxBalance": 5
             },
             "BCH": {
-                "startBalance": 1,
+                "startBalance": 0.1,
                 "minBaseCoinVolume": 1,
                 "maxBalance": 100
             },
