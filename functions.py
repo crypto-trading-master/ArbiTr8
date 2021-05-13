@@ -1,4 +1,23 @@
 from pprint import pprint
+import logging
+import time
+
+
+def initLogger():
+    global logger
+
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+
+    logging.basicConfig(filename=timestr + ".log", format='%(asctime)s %(message)s', filemode='w')
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+
+def printLog(*texts):
+    outText = ' '.join(str(text) for text in texts)
+    logger.info(outText)
+    print(outText)
+
 
 def isSpotPair(value):
     return True

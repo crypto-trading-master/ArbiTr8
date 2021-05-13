@@ -4,6 +4,7 @@ from pprint import pprint
 import json
 
 
+
 def run():
     initialize()
     arbitrage()
@@ -11,14 +12,16 @@ def run():
 
 def initialize():
 
-    print("\n---------------------------------------------------------\n")
-    print("Welcome to Triangular Arbitr8 Bot")
-    print("\n---------------------------------------------------------\n")
+    global baseCoins, coinBalance, exchange, exchanges, triplePairs, triples, \
+           bestArbTriple, noOfTrades, minProfit, paperTrading, allPairs
+
+    initLogger()
+
+    printLog("---------------------------------------------------------")
+    printLog("Welcome to Triangular Arbitr8 Bot")
+    printLog("---------------------------------------------------------")
 
     try:
-
-        global baseCoins, coinBalance, exchange, exchanges, triplePairs, triples, \
-               bestArbTriple, noOfTrades, minProfit, paperTrading, allPairs
 
         baseCoins = {}
         basePairs = {}
@@ -47,9 +50,9 @@ def initialize():
 
         baseCoins = config['baseCoins']
 
-        print("Number of base coins:", len(baseCoins))
+        printLog("Number of base coins:", len(baseCoins))
         print()
-        print("Generating Triples...")
+        printLog("Generating Triples...")
         print()
 
         exchanges = config['exchanges']
@@ -155,7 +158,7 @@ def initialize():
                                     triples[exchangeName][baseCoin].append(triple)
 
     except ccxt.ExchangeError as e:
-        print(str(e))
+        printLog(str(e))
 
 
 def arbitrage():
@@ -165,7 +168,9 @@ def arbitrage():
 
 def getBestArbitrageTriple():
 
-    print("\n\nCalculate current arbitrage possibilities...\n")
+    print()
+    printLog("Calculate current arbitrage possibilities...")
+    print()
 
     global maxProfit
     maxProfit = 0
@@ -250,7 +255,7 @@ def getBestArbitrageTriple():
 
     maxProfit = maxProfit - 1
     print()
-    print(bestArbTriple['exchange'], \
+    printLog(bestArbTriple['exchange'], \
           bestArbTriple['baseCoin'], \
           "max. Profit % ", \
           round(maxProfit * 100, 2), bestArbTriple['triple'])
@@ -258,28 +263,7 @@ def getBestArbitrageTriple():
 
     sortedArbTriples = sorted(calcTriples, key=lambda k: k['tickerProfit'], reverse=True)
 
-    '''
-    print("Number of calculated triples:", len(calcTriples))
-    for triple in sortedArbTriples[:10]:
-        profit = triple['tickerProfit'] - 1
-        print(triple['exchange'], \
-              triple['baseCoin'], \
-              "max. Profit % ", \
-              round((profit) * 100, 2), triple['triple'])
-    '''
-
     verifyTripleDepthProfit(sortedArbTriples)
-
-    return
-
-    '''
-        if maxProfit < minProfit:
-            getBestArbitrageTriple()
-        else:
-            tradeArbTriple(bestArbTriple)
-
-        # ############## TODO: Verify triple multiple times
-    '''
 
 
 def verifyTripleDepthProfit(arbTriples):
@@ -344,10 +328,10 @@ def verifyTripleDepthProfit(arbTriples):
                 profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
 
                 if profit >= minProfit:
-                    print("Exchange:", exchangeName)
-                    print("Triple:", triple)
-                    print("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
-                    print("Order book profit:", round(profit * 100, 2), "%")
+                    printLog("Exchange:", exchangeName)
+                    printLog("Triple:", triple)
+                    printLog("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
+                    printLog("Order book profit:", round(profit * 100, 2), "%")
                     print()
                 else:
                     getBestArbitrageTriple()  # Calc again
@@ -360,7 +344,7 @@ def tradeArbTriple(arbTriple):
 
     exchange.fetch_tickers()
 
-    print("\nStart balance:", tradeAmount)
+    print("Start balance:", tradeAmount)
 
     for pair in arbTriple['triple']:
         side = arbTriple[pair]['tradeAction']

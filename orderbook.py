@@ -7,7 +7,7 @@ import time
 
 def run():
 
-    exchange_class = getattr(ccxt, 'bittrex')
+    exchange_class = getattr(ccxt, 'bitfinex')
     exchange = exchange_class({
         'enableRateLimit': True
     })
@@ -16,7 +16,7 @@ def run():
 
     # triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
 
-    pair = 'ARDR/BTC'
+    pair = 'BTC/USDT'
 
     orderbook = exchange.fetch_order_book(pair)
 
