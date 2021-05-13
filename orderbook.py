@@ -16,10 +16,11 @@ def run():
 
     # triple = ['MONA/BTC', 'MONA/USDT', 'BTC/USDT']
 
-    pair = 'BTC/USDT'
+    pair = 'IDX/USD'
 
     orderbook = exchange.fetch_order_book(pair)
 
+    pprint(orderbook)
     pprint(orderbook['asks'])
 
     # print("Orderbook depth:",len(orderbook['bids']))

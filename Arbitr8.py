@@ -255,6 +255,7 @@ def getBestArbitrageTriple():
 
     maxProfit = maxProfit - 1
     print()
+    printLog("Number of potential triples:", len(calcTriples))
     printLog(bestArbTriple['exchange'], \
           bestArbTriple['baseCoin'], \
           "max. Profit % ", \
@@ -270,6 +271,7 @@ def verifyTripleDepthProfit(arbTriples):
 
     for arbTriple in arbTriples:
         i = 0
+        tripleValid = True
 
         exchangeName = arbTriple['exchange']
         exchange[exchangeName].load_markets(True)
@@ -278,63 +280,68 @@ def verifyTripleDepthProfit(arbTriples):
         coinAmountToTrade = arbTriple['coinAmountToTrade']
 
         for pair in triple:
+            if tripleValid:
 
-            i += 1
+                i += 1
 
-            orderBookLevel = 0
-            totalQuantity = 0
-            totalAmount = 0
-            orderBookDepth = 0
-            coinAmountTraded = 0
+                orderBookLevel = 0
+                totalQuantity = 0
+                totalAmount = 0
+                orderBookDepth = 0
+                coinAmountTraded = 0
 
-            orderbook = exchange[exchangeName].fetch_order_book(pair)
+                orderbook = exchange[exchangeName].fetch_order_book(pair)
 
-            if arbTriple[pair]['tradeAction'] == 'sell':
-                orderBookAction = 'bids'
-            else:
-                orderBookAction = 'asks'
+                if not (orderbook['asks'] or orderbook['bids']):
+                    tripleValid = False
+                    continue
 
-            while coinAmountToTrade > 0:
-                price = orderbook[orderBookAction][orderBookLevel][0]  # Pair base coin
-                quantity = orderbook[orderBookAction][orderBookLevel][1]  # Pair quote coin
-                amount = price * quantity
-                totalQuantity += quantity
-                totalAmount += amount
-
-                if orderBookAction == 'bids':  # sell
-                    # Check against order book quantity
-                    orderBookDepth = totalQuantity
-                    if coinAmountToTrade > orderBookDepth:
-                        coinAmountTraded += orderBookDepth * price
-                        coinAmountToTrade -= orderBookDepth
-                    else:
-                        coinAmountTraded += coinAmountToTrade * price
-                        coinAmountToTrade = 0
-                else:  # buy
-                    # Check against order book amount
-                    orderBookDepth = totalAmount
-                    if coinAmountToTrade > orderBookDepth:
-                        coinAmountTraded += orderBookDepth / price
-                        coinAmountToTrade -= orderBookDepth
-                    else:
-                        coinAmountTraded += coinAmountToTrade / price
-                        coinAmountToTrade = 0
-
-                orderBookLevel += 1
-
-            coinAmountToTrade = coinAmountTraded
-
-            if i == 3:
-                profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
-
-                if profit >= minProfit:
-                    printLog("Exchange:", exchangeName)
-                    printLog("Triple:", triple)
-                    printLog("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
-                    printLog("Order book profit:", round(profit * 100, 2), "%")
-                    print()
+                if arbTriple[pair]['tradeAction'] == 'sell':
+                    orderBookAction = 'bids'
                 else:
-                    getBestArbitrageTriple()  # Calc again
+                    orderBookAction = 'asks'
+
+                while coinAmountToTrade > 0:
+                    price = orderbook[orderBookAction][orderBookLevel][0]  # Pair base coin
+                    quantity = orderbook[orderBookAction][orderBookLevel][1]  # Pair quote coin
+                    amount = price * quantity
+                    totalQuantity += quantity
+                    totalAmount += amount
+
+                    if orderBookAction == 'bids':  # sell
+                        # Check against order book quantity
+                        orderBookDepth = totalQuantity
+                        if coinAmountToTrade > orderBookDepth:
+                            coinAmountTraded += orderBookDepth * price
+                            coinAmountToTrade -= orderBookDepth
+                        else:
+                            coinAmountTraded += coinAmountToTrade * price
+                            coinAmountToTrade = 0
+                    else:  # buy
+                        # Check against order book amount
+                        orderBookDepth = totalAmount
+                        if coinAmountToTrade > orderBookDepth:
+                            coinAmountTraded += orderBookDepth / price
+                            coinAmountToTrade -= orderBookDepth
+                        else:
+                            coinAmountTraded += coinAmountToTrade / price
+                            coinAmountToTrade = 0
+
+                    orderBookLevel += 1
+
+                coinAmountToTrade = coinAmountTraded
+
+                if i == 3:
+                    profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
+
+                    if profit >= minProfit:
+                        printLog("Exchange:", exchangeName)
+                        printLog("Triple:", triple)
+                        printLog("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
+                        printLog("Order book profit:", round(profit * 100, 2), "%")
+                        print()
+                    else:
+                        getBestArbitrageTriple()  # Calc again
 
 
 def tradeArbTriple(arbTriple):
