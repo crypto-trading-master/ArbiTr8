@@ -1,6 +1,27 @@
 from pprint import pprint
 import logging
 import time
+import csv
+
+
+def currentTimeStr():
+    return time.strftime("%Y%m%d-%H%M%S")
+
+
+def initCSV():
+    global csvWriter
+
+    filename = currentTimeStr() + ".csv"
+    csvFile = open(filename, mode='w')
+    csvWriter = csv.writer(csvFile, delimiter=';')
+    csvWriter.writerow(["Exchange", "Triple", "Ticker profit %", "Order book profit %"])
+
+
+def writeCSV(*texts):
+    row = []
+    row.append(currentTimeStr)
+    row.extend(texts)
+    csvWriter.writerow(row)
 
 
 def initLogger():

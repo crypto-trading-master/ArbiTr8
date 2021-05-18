@@ -15,6 +15,7 @@ def initialize():
     global baseCoins, coinBalance, exchange, exchanges, triplePairs, triples, \
            bestArbTriple, noOfTrades, minProfit, paperTrading, allPairs
 
+    initCSV()
     initLogger()
 
     printLog("---------------------------------------------------------")
@@ -335,11 +336,14 @@ def verifyTripleDepthProfit(arbTriples):
                     profit = coinAmountTraded / arbTriple['coinAmountToTrade'] - 1
 
                     if profit >= minProfit:
+                        tickerProfit = round((arbTriple['tickerProfit'] - 1) * 100, 2)
+                        orderBookProfit = round(profit * 100, 2)
                         printLog("Exchange:", exchangeName)
                         printLog("Triple:", triple)
-                        printLog("Ticker profit:", round((arbTriple['tickerProfit'] - 1) * 100, 2), "%")
-                        printLog("Order book profit:", round(profit * 100, 2), "%")
+                        printLog("Ticker profit:", tickerProfit, "%")
+                        printLog("Order book profit:", orderBookProfit, "%")
                         print()
+                        writeCSV(exchangeName, triple, tickerProfit, orderBookProfit)
                     else:
                         getBestArbitrageTriple()  # Calc again
 

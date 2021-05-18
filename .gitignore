@@ -142,3 +142,6 @@ secret.json
 
 # Repl.it
 .replit
+
+# Arbitrade
+*.csv
